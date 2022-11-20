@@ -2,12 +2,14 @@
 #define WIDGET_H
 
 #include <DSpinner>
+#include <DGuiApplicationHelper>
 
 #include <QWidget>
 #include <QWebEnginePage>
 #include <QStackedLayout>
 
 DWIDGET_USE_NAMESPACE
+DGUI_USE_NAMESPACE
 
 class WebEngineView;
 class Widget : public QWidget
@@ -23,9 +25,16 @@ public:
     void goForward();
     void refresh();
 
+private:
+    void initUI();
+    void initConnections();
+    void updateLayout();
+
 private slots:
     void on_loadStarted();
     void on_loadFinished();
+
+    void slotPaletteTypeChanged(DGuiApplicationHelper::ColorType paletteType);
 
 private:
     WebEngineView *m_webEngineView = nullptr;

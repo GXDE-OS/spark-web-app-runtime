@@ -11,6 +11,8 @@ class WebEngineView : public QWebEngineView
 public:
     explicit WebEngineView(QWidget *parent = nullptr);
 
+    static void handleChromiumFlags();
+
 private:
     //    WebEngineUrlRequestInterceptor *interceptor = nullptr;
 };

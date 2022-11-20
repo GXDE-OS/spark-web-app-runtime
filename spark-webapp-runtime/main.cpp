@@ -4,10 +4,11 @@
  */
 #include "application.h"
 #include "mainwindow.h"
-#include "globaldefine.h"
+#include "webengineview.h"
 #include "httpd.h"
 
 #include <DSysInfo>
+#include <DApplicationSettings>
 
 #include <QCommandLineParser>
 #include <QCommandLineOption>
@@ -49,6 +50,9 @@ int main(int argc, char *argv[])
         fakeArgv[i + 2] = argv[i];
     }
     Application a(fakeArgc, fakeArgv.data());
+
+    // 保存 DTK 主题
+    DApplicationSettings settings;
 
     // 解析命令行启动参数
     QCommandLineParser parser;
@@ -255,12 +259,14 @@ int main(int argc, char *argv[])
         toUseGPU = parser.value(useGPU).toUInt();
     }
     if (toUseGPU == true) {
-        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode --blink-settings=darkMode=4,darkModeImagePolicy=2");
+        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode");
 #ifdef __sw_64__
-        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode --blink-settings=darkMode=4,darkModeImagePolicy=2 --no-sandbox");
+        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode --no-sandbox");
 #endif
         qDebug() << "Setting GPU to True.";
     }
+    // 初始化 QtWebEngine 深色模式环境变量
+    WebEngineView::handleChromiumFlags();
 
 #if SSL_SERVER
     if (parser.isSet(optSSLPort)) {
