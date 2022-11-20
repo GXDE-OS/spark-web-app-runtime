@@ -1,0 +1,12 @@
+#!/bin/sh
+
+case "$1" in
+	configure)
+		# Create symbol links for binary files
+		ln -s -f /opt/durapps/spark-webapp-runtime/bin/spark-webapp-runtime /usr/bin/spark-webapp-runtime
+		ln -s -f /opt/durapps/spark-webapp-runtime/share/spark-webapp-runtime /usr/share/spark-webapp-runtime
+	;;
+
+	*)
+	;;
+esac

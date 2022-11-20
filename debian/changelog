@@ -1,0 +1,9 @@
+spark-webapp-runtime (1.6.5-1) stable; urgency=medium
+
+  * Support dpkg-buildpackage
+  * Support open external links in default browser
+  * Add single instance limitation for apps using same title
+  * Fix wrong Accept-Language http request header
+
+ -- shenmo <shenmo@spark-app.store>  Sun, 20 Nov 2022 17:00:00 +0800
+

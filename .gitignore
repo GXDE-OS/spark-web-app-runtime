@@ -41,3 +41,14 @@ target_wrapper.*
 
 # QtCreator CMake
 CMakeLists.txt.user*
+
+# Qt qm files
+translations/*.qm
+
+# Debian dpkg-buildpackage
+debian/*.debhelper*
+debian/files
+debian/*.substvars
+debian/spark-webapp-runtime
+
+build

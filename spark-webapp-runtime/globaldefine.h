@@ -18,6 +18,6 @@
 #define DEFAULT_PORT 0
 #define DEFAULT_GPU 1
 
-#define CURRENT_VER QString("1.6.4")
+#define CURRENT_VER QString("1.6.5")
 
 #endif // GLOBALDEFINE_H
