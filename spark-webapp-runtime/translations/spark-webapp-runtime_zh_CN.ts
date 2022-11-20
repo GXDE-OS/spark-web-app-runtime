@@ -18,92 +18,92 @@
     <name>QObject</name>
     <message>
         <location filename="../application.cpp" line="57"/>
-        <location filename="../main.cpp" line="182"/>
+        <location filename="../main.cpp" line="186"/>
         <source>Presented By Spark developers # HadesStudio</source>
         <translation>由 星火开发者联盟 @ 花心胡萝卜 提供</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="56"/>
+        <location filename="../main.cpp" line="60"/>
         <source>Description: %1</source>
         <translation>描述：%1</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="62"/>
+        <location filename="../main.cpp" line="66"/>
         <source>Enable CommandLineParser. Default is false.</source>
         <translation>启用参数解析方式。默认顺序解析方式。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="67"/>
+        <location filename="../main.cpp" line="71"/>
         <source>The Title of Application. Default is %1.</source>
         <translation>设置程序的运行标题。默认是 %1。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="74"/>
+        <location filename="../main.cpp" line="78"/>
         <source>The target URL. Default is Blank.</source>
         <translation>设置要打开的目标 URL。默认是空。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="81"/>
+        <location filename="../main.cpp" line="85"/>
         <source>The Width of Application. Default is %1.</source>
         <translation>设置应用的窗口宽度。默认是 %1。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="88"/>
+        <location filename="../main.cpp" line="92"/>
         <source>The Height of Application. Default is %1.</source>
         <translation>设置应用的窗口高度。默认是 %1。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="95"/>
+        <location filename="../main.cpp" line="99"/>
         <source>Enable Tray Icon. Default is false.</source>
         <translation>启用托盘图标。默认不启用。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="99"/>
+        <location filename="../main.cpp" line="103"/>
         <source>Run in Fullscreen Mode. Default is false.</source>
         <translation>以全屏模式运行。默认关闭该功能。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="103"/>
+        <location filename="../main.cpp" line="107"/>
         <source>Fix Window Size. Default is false.</source>
         <translation>固定窗口大小。默认关闭该功能。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="107"/>
+        <location filename="../main.cpp" line="111"/>
         <source>Hide Control Buttons. Default is false.</source>
         <translation>隐藏控制按钮。默认关闭该此功能。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="112"/>
+        <location filename="../main.cpp" line="116"/>
         <source>The ICON of Application.</source>
         <translation>设置应用的图标。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="119"/>
+        <location filename="../main.cpp" line="123"/>
         <source>The Description of Application.</source>
         <translation>设置应用的描述信息。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="126"/>
+        <location filename="../main.cpp" line="130"/>
         <source>The Configuration file of Application.</source>
         <translation>设置应用的配置文件。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="133"/>
+        <location filename="../main.cpp" line="137"/>
         <source>The root path of the program web service.</source>
         <translation>设置内置 WebServer 的根路径。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="140"/>
+        <location filename="../main.cpp" line="144"/>
         <source>The port number of the program web service.</source>
         <translation>设置内置 WebServer 的监听端口号。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="147"/>
+        <location filename="../main.cpp" line="151"/>
         <source>To use GPU instead of CPU to decoding. Default True.</source>
         <translation>启用GPU渲染，默认开启。</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="155"/>
+        <location filename="../main.cpp" line="159"/>
         <source>The ssl port number of the program web service.</source>
         <translation>设置内置 WebServer 的 SSL 协议的监听端口号。</translation>
     </message>
