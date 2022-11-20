@@ -1,6 +1,6 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    spark-webapp-runtime
+        spark-webapp-runtime
 
 CONFIG += ordered

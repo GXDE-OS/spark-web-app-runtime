@@ -7,7 +7,7 @@ TEMPLATE = app
 DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++11 link_pkgconfig
-PKGCONFIG += dtkwidget
+PKGCONFIG += dtkcore dtkgui dtkwidget
 
 HEADERS += \
         mainwindow.h \
@@ -15,14 +15,20 @@ HEADERS += \
         httpd.h \
         httplib.h \
         widget.h \
-        webengineview.h
+        webengineview.h \
+        webenginepage.h \
+        application.h \
+        webengineurlrequestinterceptor.h
 
 SOURCES += \
         main.cpp \
         httpd.cpp \
         mainwindow.cpp \
         widget.cpp \
-        webengineview.cpp
+        webengineview.cpp \
+        webenginepage.cpp \
+        application.cpp \
+        webengineurlrequestinterceptor.cpp
 
 RESOURCES += \
           imgs.qrc

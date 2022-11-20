@@ -1,22 +1,20 @@
 #include "webengineview.h"
+//#include "webengineurlrequestinterceptor.h"
+
+#include <QWebEngineSettings>
+#include <QWebEngineProfile>
+#include <QLocale>
 
 WebEngineView::WebEngineView(QWidget *parent)
     : QWebEngineView(parent)
+//    , interceptor(new WebEngineUrlRequestInterceptor(this))
 {
-}
+    //    page()->profile()->setHttpUserAgent(page()->profile()->httpUserAgent() + " MediaFeature/prefers-color-scheme:dark");
 
-QWebEngineView *WebEngineView::createWindow(QWebEnginePage::WebWindowType type)
-{
-    Q_UNUSED(type)
-
-    QWebEngineView *view = new QWebEngineView;
-    connect(view, &QWebEngineView::urlChanged, this, &WebEngineView::on_urlChanged);
-
-    return view;
-}
-
-void WebEngineView::on_urlChanged(QUrl url)
-{
-    setUrl(url);
-    sender()->deleteLater();
+    connect(this, &WebEngineView::urlChanged, this, [=]() {
+        //        page()->setUrlRequestInterceptor(interceptor);
+        //        page()->settings()->setAttribute(QWebEngineSettings::WebAttribute::LocalContentCanAccessRemoteUrls, true);
+        page()->profile()->setHttpAcceptLanguage(QLocale::system().name());
+        //        qInfo() << "User Agent:" << page()->profile()->httpUserAgent();
+    });
 }

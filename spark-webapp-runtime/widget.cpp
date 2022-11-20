@@ -1,4 +1,10 @@
 #include "widget.h"
+#include "webengineview.h"
+#include "webenginepage.h"
+
+#include <DApplication>
+
+DWIDGET_USE_NAMESPACE
 
 Widget::Widget(QString szUrl, QWidget *parent)
     : QWidget(parent)
@@ -12,14 +18,16 @@ Widget::Widget(QString szUrl, QWidget *parent)
     m_webEngineView->setObjectName(QStringLiteral("webEngineView"));
     m_webEngineView->setEnabled(true);
     m_webEngineView->setAutoFillBackground(false);
-    m_webEngineView->setZoomFactor(1.0);
 
-    QWebEnginePage *page = new QWebEnginePage(m_webEngineView);
+    DApplication *dApp = qobject_cast<DApplication *>(qApp);
+    m_webEngineView->setZoomFactor(dApp->devicePixelRatio());
+
+    WebEnginePage *page = new WebEnginePage(m_webEngineView);
     m_webEngineView->setPage(page);
 
-    m_webEngineView->setUrl(QUrl(nullptr));
+    page->setUrl(QUrl());
     if (!m_szUrl.isEmpty()) {
-        m_webEngineView->setUrl(QUrl(m_szUrl));
+        page->setUrl(QUrl(m_szUrl));
     }
 
     QWidget *spinnerWidget = new QWidget(this);
@@ -40,8 +48,6 @@ Widget::Widget(QString szUrl, QWidget *parent)
 
 Widget::~Widget()
 {
-    delete m_webEngineView;
-    delete m_spinner;
 }
 
 QWebEnginePage *Widget::getPage()

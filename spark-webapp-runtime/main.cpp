@@ -1,30 +1,28 @@
-/*
- *
+/**
+ * Spark WebApp Runtime
  * 星火网页应用运行环境
-*/
+ */
+#include "application.h"
 #include "mainwindow.h"
+#include "globaldefine.h"
+#include "httpd.h"
 
-#include <DApplication>
-#include <DPlatformWindowHandle>
+#include <DSysInfo>
 
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include <QFileInfo>
 #include <QSettings>
-#include <QVector>
 
-#include "globaldefine.h"
-#include "httpd.h"
-
-DWIDGET_USE_NAMESPACE
+#include <unistd.h>
 
 int main(int argc, char *argv[])
 {
     if (!QString(qgetenv("XDG_CURRENT_DESKTOP")).toLower().startsWith("deepin")) {
-        setenv("XDG_CURRENT_DESKTOP", "Deepin", 1);
+        qputenv("XDG_CURRENT_DESKTOP", "Deepin");
     }
 
-    // 龙芯机器配置,使得DApplication能正确加载QTWEBENGINE
+    // 龙芯机器配置,使得 DApplication 能正确加载 QTWEBENGINE
     qputenv("DTK_FORCE_RASTER_WIDGETS", "FALSE");
 //    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-features=UseModernMediaControls");
 //    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-web-security");
@@ -32,60 +30,27 @@ int main(int argc, char *argv[])
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--no-sandbox");
 #endif
 
+    if (!Dtk::Core::DSysInfo::isDDE()) {
 #ifndef DSTORE_NO_DXCBs
-    Dtk::Widget::DApplication::loadDXcbPlugin();
+        DApplication::loadDXcbPlugin();
 #endif
-
-    // 强制使用DTK平台插件
-    QVector<char *> fakeArgv(argc + 2);
-    fakeArgv[0] = argv[0];
-    fakeArgv[1] = "-platformtheme";
-    fakeArgv[2] = "deepin";
-    for(int i = 1; i < argc; i++) fakeArgv[i + 2] = argv[i];
-    int fakeArgc = argc + 2;
-    DApplication a(fakeArgc, fakeArgv.data());
-
-    a.loadTranslator();
-    a.setAttribute(Qt::AA_UseHighDpiPixmaps);
-    if (!Dtk::Widget::DPlatformWindowHandle::pluginVersion().isEmpty()) {
-        a.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings, true);
     }
 
-    a.setApplicationVersion(QString(CURRENT_VER));
-    a.setOrganizationName(ORGANIZATION_NAME); // 添加组织名称，和商店主体的文件夹同在 ~/.local/share/spark-union 文件夹下
-    a.setApplicationName(APPLICATION_NAME); // 这里不要翻译，否则 ~/.local/share 中文件夹名也会被翻译
-    a.setProductName(DEFAULT_TITLE);
-    a.setApplicationDisplayName(DEFAULT_TITLE);
+    // 开启 HiDPI 缩放支持
+    DApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-    // Customized DAboutDialog (Can't work on other distro like Ubuntu...)
-    DAboutDialog *dialog = new DAboutDialog;
-    a.setAboutDialog(dialog);
+    // 强制使用 DTK 平台插件
+    int fakeArgc = argc + 2;
+    QVector<char *> fakeArgv(fakeArgc);
+    fakeArgv[0] = argv[0];
+    fakeArgv[1] = QString("-platformtheme").toUtf8().data();
+    fakeArgv[2] = QString("deepin").toUtf8().data();
+    for (int i = 1; i < argc; i++) {
+        fakeArgv[i + 2] = argv[i];
+    }
+    Application a(fakeArgc, fakeArgv.data());
 
-    // WindowIcon
-    dialog->setWindowIcon(QIcon(":/images/spark-webapp-runtime.svg"));
-    // ProductIcon
-    dialog->setProductIcon(QIcon(":/images/spark-webapp-runtime.svg"));
-    // ProductName
-    dialog->setProductName(QString("<span>%1</span>").arg(DEFAULT_TITLE));
-    // Version
-    dialog->setVersion(QString("%1 %2").arg(QObject::tr("Version:")).arg(CURRENT_VER));
-    // CompanyLogo
-    dialog->setCompanyLogo(QPixmap(":/images/Logo-Spark.png"));
-    // Description
-
-    QString szDefaultDesc = QString("<a href='https://gitee.com/deepin-community-store/spark-web-app-runtime'><span style='font-size:12pt;font-weight:500;'>%1</span></a><br/>"
-                                    "<span style='font-size:12pt;'>%2</span>")
-                                .arg(DEFAULT_TITLE)
-                                .arg(QObject::tr("Presented By Spark developers # HadesStudio"));
-
-    dialog->setDescription(szDefaultDesc);
-    // WebsiteName
-    dialog->setWebsiteName("Spark Project");
-    // WebsiteLink
-    dialog->setWebsiteLink("https://gitee.com/deepin-community-store/");
-    // License
-    dialog->setLicense(QObject::tr("Published under GPLv3"));
-
+    // 解析命令行启动参数
     QCommandLineParser parser;
 
     parser.setApplicationDescription(QObject::tr("Description: %1").arg(DEFAULT_TITLE));
@@ -174,15 +139,14 @@ int main(int argc, char *argv[])
                                              << "port",
                                QObject::tr("The port number of the program web service."),
                                "port",
-                               DEFAULT_PORT);
+                               QString::number(DEFAULT_PORT));
     parser.addOption(optPort);
-
 
     QCommandLineOption useGPU(QStringList() << "G"
                                             << "GPU",
-                               QObject::tr("To use GPU instead of CPU to decoding. Default True."),
-                               "GPU",
-                               QString::number(DEFAULT_GPU));
+                              QObject::tr("To use GPU instead of CPU to decoding. Default True."),
+                              "GPU",
+                              QString::number(DEFAULT_GPU));
     parser.addOption(useGPU);
 
 #if SSL_SERVER
@@ -212,7 +176,12 @@ int main(int argc, char *argv[])
 #if SSL_SERVER
     quint16 u16sslPort = 0;
 #endif
+    QString szDefaultDesc = QString("<a href='https://gitee.com/deepin-community-store/spark-web-app-runtime'><span style='font-size:12pt;font-weight:500;'>%1</span></a><br/>"
+                                    "<span style='font-size:12pt;'>%2</span>")
+                                .arg(DEFAULT_TITLE)
+                                .arg(QObject::tr("Presented By Spark developers # HadesStudio"));
 
+    // 解析可能存在的配置文件
     QString szCfgFile = DEFAULT_CFG;
     if (parser.isSet(optCfgFile)) {
         szCfgFile = parser.value(optCfgFile);
@@ -232,7 +201,7 @@ int main(int argc, char *argv[])
                              .arg(settings.value("SparkWebAppRuntime/Desc", QString()).toString())
                              .arg(szDefaultDesc);
                 szRootPath = settings.value("SparkWebAppRuntime/RootPath", QString()).toString();
-                u16Port = settings.value("SparkWebAppRuntime/Port", 0).toUInt();
+                u16Port = static_cast<quint16>(settings.value("SparkWebAppRuntime/Port", 0).toUInt());
 #if SSL_SERVER
                 u16sslPort = settings.value("SparkWebAppRuntime/SSLPort", 0).toUInt();
 #endif
@@ -267,6 +236,9 @@ int main(int argc, char *argv[])
         hideButtons = true;
     }
 
+    if (parser.isSet(optIcon)) {
+        szIcon = parser.value(optIcon);
+    }
     if (parser.isSet(optDesc)) {
         szDesc = QString("%1<br/><br/>%2").arg(parser.value(optDesc)).arg(szDefaultDesc);
     }
@@ -276,17 +248,17 @@ int main(int argc, char *argv[])
     }
 
     if (parser.isSet(optPort)) {
-        u16Port = parser.value(optPort).toUInt();
+        u16Port = static_cast<quint16>(parser.value(optPort).toUInt());
     }
 
     if (parser.isSet(useGPU)) {
         toUseGPU = parser.value(useGPU).toUInt();
     }
-    if (toUseGPU == true){
-        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode");
-        #ifdef __sw_64__
-            qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode --no-sandbox");
-        #endif
+    if (toUseGPU == true) {
+        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode --blink-settings=darkMode=4,darkModeImagePolicy=2");
+#ifdef __sw_64__
+        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode --blink-settings=darkMode=4,darkModeImagePolicy=2 --no-sandbox");
+#endif
         qDebug() << "Setting GPU to True.";
     }
 
@@ -335,7 +307,7 @@ int main(int argc, char *argv[])
             szRootPath = QString(argv[11]);
         }
         if (argc > 12) {
-            u16Port = QString(argv[12]).toUInt();
+            u16Port = static_cast<quint16>(QString(argv[12]).toUInt());
         }
 #if SSL_SERVER
         if (argc > 13) {
@@ -348,9 +320,12 @@ int main(int argc, char *argv[])
         fullScreen = false; // 固定窗口大小时禁用全屏模式，避免标题栏按钮 BUG
     }
 
+    // DApplication 单例运行（标题名称_当前登录用户 id）
+    if (!a.setSingleInstance(szTitle + "_" + QString::number(getuid()))) {
+        qInfo() << "Another instance has already started, now exit...";
+        exit(0);
+    }
     a.setQuitOnLastWindowClosed(!tray); // 启用托盘时，退出程序后服务不终止
-
-    MainWindow w(szTitle, szUrl, width, height, tray, fullScreen, fixSize, hideButtons, dialog);
 
 #if SSL_SERVER
     if (!szRootPath.isEmpty() && u16Port > 0 && u16sslPort > 0) {
@@ -360,24 +335,23 @@ int main(int argc, char *argv[])
 #else
     if (!szRootPath.isEmpty() && u16Port > 0) {
         static HttpD httpd(szRootPath, u16Port);
-        QObject::connect(&w, &MainWindow::sigQuit, &httpd, &HttpD::stop);
+        QObject::connect(&a, &Application::sigQuit, &httpd, &HttpD::stop);
         httpd.start();
     }
 #endif
 
-    if (parser.isSet(optIcon)) {
-        szIcon = parser.value(optIcon);
-    }
+    MainWindow w(szTitle, szUrl, width, height, tray, fullScreen, fixSize, hideButtons);
+    QObject::connect(&a, &Application::newInstanceStarted, &w, &MainWindow::slotNewInstanceStarted);
+    QObject::connect(&w, &MainWindow::sigClose, &a, &Application::slotMainWindowClose);
 
     if (!szIcon.isEmpty()) {
-        dialog->setWindowIcon(QIcon(szIcon));
-        dialog->setProductIcon(QIcon(szIcon));
         w.setIcon(szIcon);
     }
     if (!szDesc.isEmpty()) {
-        dialog->setDescription(szDesc);
+        w.setDescription(szDesc);
     }
 
     w.show();
+
     return a.exec();
 }

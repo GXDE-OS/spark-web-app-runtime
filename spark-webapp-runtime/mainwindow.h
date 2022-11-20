@@ -30,11 +30,11 @@ public:
                bool nFullScreen = false,
                bool nFixSize = false,
                bool nHideButtons = false,
-               QDialog *dialog = nullptr,
                QWidget *parent = nullptr);
     ~MainWindow();
 
     void setIcon(QString szIconPath);
+    void setDescription(const QString &desc);
 
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -56,7 +56,10 @@ private:
     QString saveAs(QString fileName);
 
 signals:
-    void sigQuit();
+    void sigClose();
+
+public slots:
+    void slotNewInstanceStarted();
 
 private slots:
     void on_trayIconActivated(QSystemTrayIcon::ActivationReason reason);
@@ -74,7 +77,6 @@ private:
     bool m_isTrayEnabled, m_isFullScreen, m_isFixedSize, m_isHideButton;
 
     Widget *m_widget;
-    DAboutDialog *m_dialog;
     QSystemTrayIcon *m_tray;
 
     DToolButton *btnBack;

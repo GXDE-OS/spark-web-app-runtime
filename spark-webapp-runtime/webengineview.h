@@ -3,6 +3,7 @@
 
 #include <QWebEngineView>
 
+// class WebEngineUrlRequestInterceptor;
 class WebEngineView : public QWebEngineView
 {
     Q_OBJECT
@@ -10,12 +11,8 @@ class WebEngineView : public QWebEngineView
 public:
     explicit WebEngineView(QWidget *parent = nullptr);
 
-protected:
-    QWebEngineView *createWindow(QWebEnginePage::WebWindowType type) override;
-
-private slots:
-    void on_urlChanged(QUrl url);
-
+private:
+    //    WebEngineUrlRequestInterceptor *interceptor = nullptr;
 };
 
 #endif // WEBENGINEVIEW_H

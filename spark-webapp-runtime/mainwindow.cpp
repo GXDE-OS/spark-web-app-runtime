@@ -1,16 +1,19 @@
 #include "mainwindow.h"
+#include "application.h"
+#include "webengineview.h"
+#include "webenginepage.h"
 
 #include <DWidgetUtil>
 #include <DTitlebar>
 #include <DMessageManager>
 #include <DDesktopServices>
 
+#include <QKeyEvent>
+#include <QWebEngineProfile>
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QDir>
-#include <QCloseEvent>
-
-#include "webengineview.h"
+#include <QStandardPaths>
 
 MainWindow::MainWindow(QString szTitle,
                        QString szUrl,
@@ -20,7 +23,6 @@ MainWindow::MainWindow(QString szTitle,
                        bool nFullScreen,
                        bool nFixSize,
                        bool nHideButtons,
-                       QDialog *dialog,
                        QWidget *parent)
     : DMainWindow(parent)
     , m_title(szTitle)
@@ -32,27 +34,26 @@ MainWindow::MainWindow(QString szTitle,
     , m_isFixedSize(nFixSize)
     , m_isHideButton(nHideButtons)
     , m_widget(new Widget(m_url, this))
-    , m_dialog(dynamic_cast<DAboutDialog *>(dialog))
     , m_tray(new QSystemTrayIcon(this))
     , btnBack(new DToolButton(titlebar()))
     , btnForward(new DToolButton(titlebar()))
     , btnRefresh(new DToolButton(titlebar()))
     , m_menu(new QMenu(titlebar()))
-    , m_fullScreen(new QAction(tr("Full Screen"), this))
-    , m_fixSize(new QAction(tr("Fix Size"), this))
-    , m_hideButtons(new QAction(tr("Hide Buttons"), this))
-    , m_clearCache(new QAction(tr("Clear Cache"), this))
+    , m_fullScreen(new QAction(QObject::tr("Full Screen"), this))
+    , m_fixSize(new QAction(QObject::tr("Fix Size"), this))
+    , m_hideButtons(new QAction(QObject::tr("Hide Buttons"), this))
+    , m_clearCache(new QAction(QObject::tr("Clear Cache"), this))
     , t_menu(new QMenu(this))
-    , t_show(new QAction(tr("Show MainWindow"), this))
-    , t_about(new QAction(tr("About"), this))
-    , t_exit(new QAction(tr("Exit"), this))
+    , t_show(new QAction(QObject::tr("Show MainWindow"), this))
+    , t_about(new QAction(qApp->translate("TitleBarMenu", "About"), this))
+    , t_exit(new QAction(qApp->translate("TitleBarMenu", "Exit"), this))
     , downloadMessage(new DFloatingMessage(DFloatingMessage::ResidentType, this))
     , downloadProgressWidget(new QWidget(downloadMessage))
     , progressBarLayout(new QHBoxLayout(downloadProgressWidget))
     , downloadProgressBar(new DProgressBar(downloadProgressWidget))
-    , btnPause(new DPushButton(tr("Pause"), downloadProgressWidget))
-    , btnResume(new DPushButton(tr("Resume"), downloadProgressWidget))
-    , btnCancel(new DPushButton(tr("Cancel"), downloadProgressWidget))
+    , btnPause(new DPushButton(QObject::tr("Pause"), downloadProgressWidget))
+    , btnResume(new DPushButton(QObject::tr("Resume"), downloadProgressWidget))
+    , btnCancel(new DPushButton(QObject::tr("Cancel"), downloadProgressWidget))
     , isCanceled(false)
 {
     initUI();
@@ -62,16 +63,30 @@ MainWindow::MainWindow(QString szTitle,
 
 MainWindow::~MainWindow()
 {
-    emit sigQuit();
-    delete m_dialog;
 }
 
 void MainWindow::setIcon(QString szIconPath)
 {
-    if (QFileInfo(szIconPath).exists()) {
-        titlebar()->setIcon(QIcon(szIconPath));
-        setWindowIcon(QIcon(szIconPath));
-        m_tray->setIcon(QIcon(szIconPath));
+    if (!QFileInfo(szIconPath).exists()) {
+        return;
+    }
+
+    titlebar()->setIcon(QIcon(szIconPath));
+    setWindowIcon(QIcon(szIconPath));
+    m_tray->setIcon(QIcon(szIconPath));
+
+    DAboutDialog *aboutDialog = qobject_cast<Application *>(qApp)->aboutDialog();
+    if (aboutDialog) {
+        aboutDialog->setWindowIcon(QIcon::fromTheme(szIconPath));
+        aboutDialog->setProductIcon(QIcon::fromTheme(szIconPath));
+    }
+}
+
+void MainWindow::setDescription(const QString &desc)
+{
+    DAboutDialog *aboutDialog = qobject_cast<Application *>(qApp)->aboutDialog();
+    if (aboutDialog) {
+        aboutDialog->setDescription(desc);
     }
 }
 
@@ -85,7 +100,8 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
             m_menu->update();
         }
     }
-    event->accept();
+
+    DMainWindow::keyPressEvent(event);
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event)
@@ -98,15 +114,17 @@ void MainWindow::resizeEvent(QResizeEvent *event)
             m_fixSize->setEnabled(true); // 命令行参数没有固定窗口大小时，窗口模式下允许手动选择固定窗口大小
         }
     }
+
     DMainWindow::resizeEvent(event);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if (!m_isTrayEnabled) {
-        m_dialog->close(); // 不启用托盘时，关闭主窗口则关闭关于窗口
+        emit sigClose(); // 不启用托盘时，关闭主窗口则关闭关于窗口
     }
-    event->accept();
+
+    DMainWindow::closeEvent(event);
 }
 
 void MainWindow::initUI()
@@ -240,8 +258,7 @@ void MainWindow::initConnections()
         fixSize();
     });
     connect(t_about, &QAction::triggered, this, [=]() {
-        m_dialog->activateWindow();
-        m_dialog->show();
+        qobject_cast<Application *>(qApp)->handleAboutAction();
     });
     connect(t_exit, &QAction::triggered, this, [=]() {
         exit(0);
@@ -262,14 +279,14 @@ void MainWindow::fullScreen()
         m_fixSize->setDisabled(true);
         m_menu->update();
         showFullScreen();
-        // DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-information").pixmap(64, 64), QString(tr("%1Fullscreen Mode")).arg("    "));
+        // DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-information").pixmap(64, 64), QString(QObject::tr("%1Fullscreen Mode")).arg("    "));
     } else {
         if (!m_isFixedSize) {
             m_fixSize->setDisabled(false); // 命令行参数没有固定窗口大小时，窗口模式下允许手动选择固定窗口大小
         }
         m_menu->update();
         showNormal();
-        // DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-information").pixmap(64, 64), QString(tr("%1Windowed Mode")).arg("    "));
+        // DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-information").pixmap(64, 64), QString(QObject::tr("%1Windowed Mode")).arg("    "));
     }
 }
 
@@ -307,7 +324,7 @@ void MainWindow::hideButtons()
 void MainWindow::clearCache()
 {
     // 清除缓存文件夹并刷新页面
-    QDir dir(QDir::homePath() + "/.local/share/" + ORGANIZATION_NAME + "/" + APPLICATION_NAME);
+    QDir dir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation));
     if (dir.exists()) {
         dir.removeRecursively();
     }
@@ -317,7 +334,9 @@ void MainWindow::clearCache()
 
 QString MainWindow::saveAs(QString fileName)
 {
-    QString saveFile = QFileDialog::getSaveFileName(this, tr("Save As"), QDir::homePath() + "/Downloads/" + fileName);
+    QString saveFile = QFileDialog::getSaveFileName(this,
+                                                    QObject::tr("Save As"),
+                                                    QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) + "/" + fileName);
     if (!saveFile.isEmpty()) {
         // 判断上层目录是否可写入
         if (QFileInfo(QFileInfo(saveFile).absolutePath()).isWritable()) {
@@ -329,11 +348,19 @@ QString MainWindow::saveAs(QString fileName)
     return nullptr;
 }
 
+void MainWindow::slotNewInstanceStarted()
+{
+    this->setWindowState(Qt::WindowActive);
+    this->activateWindow();
+    this->show();
+}
+
 void MainWindow::on_trayIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     switch (reason) {
     /* 响应托盘点击事件 */
     case QSystemTrayIcon::Trigger:
+        this->setWindowState(Qt::WindowActive);
         this->activateWindow();
         fixSize();
         break;
@@ -372,7 +399,7 @@ void MainWindow::on_downloadStart(QWebEngineDownloadItem *item)
 
         DFloatingMessage *message = new DFloatingMessage(DFloatingMessage::TransientType);
         message->setIcon(QIcon::fromTheme("dialog-information").pixmap(64, 64));
-        message->setMessage(QString(tr("%1Start downloading %2")).arg("    ").arg(fileName));
+        message->setMessage(QString(QObject::tr("%1Start downloading %2")).arg("    ").arg(fileName));
         DMessageManager::instance()->sendMessage(this, message);
 
         item->accept();
@@ -383,7 +410,7 @@ void MainWindow::on_downloadStart(QWebEngineDownloadItem *item)
         btnPause->show();
         this->downloadMessage->show(); // 上一次下载完成后隐藏了进度条，这里要重新显示
     } else {
-        DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-cancel").pixmap(64, 64), QString(tr("%1Wait for previous download to complete!")).arg("    "));
+        DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-cancel").pixmap(64, 64), QString(QObject::tr("%1Wait for previous download to complete!")).arg("    "));
     }
 }
 
@@ -405,17 +432,18 @@ void MainWindow::on_downloadFinish(QString filePath)
 
     // 下载完成显示提示信息
     if (!isCanceled) {
-        DPushButton *button = new DPushButton(tr("Open"));
+        DPushButton *button = new DPushButton(QObject::tr("Open"));
 
         DFloatingMessage *message = new DFloatingMessage(DFloatingMessage::ResidentType);
         message->setIcon(QIcon::fromTheme("dialog-ok").pixmap(64, 64));
-        message->setMessage(QString("    %1 %2 %3").arg(QFileInfo(filePath).fileName()).arg(tr("download finished.")).arg(tr("Show in file manager?")));
+        message->setMessage(QString("    %1 %2 %3").arg(QFileInfo(filePath).fileName()).arg(QObject::tr("download finished.")).arg(QObject::tr("Show in file manager?")));
         message->setWidget(button);
         DMessageManager::instance()->sendMessage(this, message);
 
         connect(button, &DPushButton::clicked, this, [=]() {
             DDesktopServices::showFileItem(filePath);
             message->hide();
+            message->deleteLater();
         });
     }
 }
@@ -446,5 +474,5 @@ void MainWindow::on_downloadCancel(QWebEngineDownloadItem *item)
     mutex.unlock();
 
     downloadMessage->hide();
-    DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-error").pixmap(64, 64), QString(tr("%1Download canceled!")).arg("    "));
+    DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-error").pixmap(64, 64), QString(QObject::tr("%1Download canceled!")).arg("    "));
 }

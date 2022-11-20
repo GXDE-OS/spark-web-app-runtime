@@ -1,18 +1,15 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include <QWidget>
-#include <QWebEngineProfile>
-#include <QWebEngineView>
-#include <QLayout>
-#include <QStackedLayout>
-
 #include <DSpinner>
 
-#include "webengineview.h"
+#include <QWidget>
+#include <QWebEnginePage>
+#include <QStackedLayout>
 
 DWIDGET_USE_NAMESPACE
 
+class WebEngineView;
 class Widget : public QWidget
 {
     Q_OBJECT
@@ -26,16 +23,16 @@ public:
     void goForward();
     void refresh();
 
-private:
-    WebEngineView *m_webEngineView;
-    DSpinner *m_spinner;
-    QStackedLayout *mainLayout;
-
-    QString m_szUrl;
-
 private slots:
     void on_loadStarted();
     void on_loadFinished();
+
+private:
+    WebEngineView *m_webEngineView = nullptr;
+    DSpinner *m_spinner = nullptr;
+    QStackedLayout *mainLayout = nullptr;
+
+    QString m_szUrl;
 };
 
 #endif // WIDGET_H
