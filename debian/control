@@ -21,6 +21,9 @@ Homepage: https://gitee.com/deepin-community-store/spark-web-app-runtime
 
 
 Package: spark-webapp-runtime
+Conflicts: store.spark-app.spark-webapp-runtime
+Replaces: store.spark-app.spark-webapp-runtime
+Provides: store.spark-app.spark-webapp-runtime
 Architecture: any
 Depends:${shlibs:Depends}, ${misc:Depends},
  libqt5core5a,
