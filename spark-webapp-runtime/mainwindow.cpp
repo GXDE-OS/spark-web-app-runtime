@@ -265,8 +265,8 @@ void MainWindow::initConnections()
     });
     connect(m_tray, &QSystemTrayIcon::activated, this, &MainWindow::on_trayIconActivated);
 
+    connect(m_widget, &Widget::sigLoadErrorOccurred, this, &MainWindow::slotLoadErrorOccurred);
     connect(m_widget->getPage()->profile(), &QWebEngineProfile::downloadRequested, this, &MainWindow::on_downloadStart);
-
     connect(m_widget->getPage(), &QWebEnginePage::windowCloseRequested, this, [=]() {
         this->close();
     });
@@ -475,4 +475,9 @@ void MainWindow::on_downloadCancel(QWebEngineDownloadItem *item)
 
     downloadMessage->hide();
     DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-error").pixmap(64, 64), QString(QObject::tr("%1Download canceled!")).arg("    "));
+}
+
+void MainWindow::slotLoadErrorOccurred()
+{
+    DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-warning").pixmap(64, 64), QString(QObject::tr("%1Load error occurred!")).arg("    "));
 }

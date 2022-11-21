@@ -30,9 +30,13 @@ private:
     void initConnections();
     void updateLayout();
 
+signals:
+    void sigLoadErrorOccurred();
+
 private slots:
-    void on_loadStarted();
-    void on_loadFinished();
+    void slotLoadStarted();
+    void slotLoadProgress(int value);
+    void slotLoadFinished(int status);
 
     void slotPaletteTypeChanged(DGuiApplicationHelper::ColorType paletteType);
 

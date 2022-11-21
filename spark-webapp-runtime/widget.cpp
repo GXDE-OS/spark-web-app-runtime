@@ -71,8 +71,9 @@ void Widget::initUI()
 
 void Widget::initConnections()
 {
-    connect(m_webEngineView, &QWebEngineView::loadStarted, this, &Widget::on_loadStarted, Qt::UniqueConnection);
-    connect(m_webEngineView, &QWebEngineView::loadFinished, this, &Widget::on_loadFinished, Qt::UniqueConnection);
+    connect(m_webEngineView, &QWebEngineView::loadStarted, this, &Widget::slotLoadStarted, Qt::UniqueConnection);
+    connect(m_webEngineView, &QWebEngineView::loadProgress, this, &Widget::slotLoadProgress, Qt::UniqueConnection);
+    connect(m_webEngineView, &QWebEngineView::loadFinished, this, &Widget::slotLoadFinished, Qt::UniqueConnection);
 
     // FIXME: DTK 主题切换时，动态修改 QtWebEngine prefers-color-scheme
     //    connect(DGuiApplicationHelper::instance(), &DGuiApplicationHelper::paletteTypeChanged, this, &Widget::slotPaletteTypeChanged, Qt::UniqueConnection);
@@ -80,7 +81,7 @@ void Widget::initConnections()
 
 void Widget::updateLayout()
 {
-    on_loadStarted();
+    slotLoadStarted();
 
     mainLayout->removeWidget(m_webEngineView);
     QUrl url = m_webEngineView->url();
@@ -98,16 +99,33 @@ void Widget::updateLayout()
     page->setUrl(url);
 }
 
-void Widget::on_loadStarted()
+void Widget::slotLoadStarted()
 {
     mainLayout->setCurrentIndex(0);
     m_spinner->start();
 }
 
-void Widget::on_loadFinished()
+void Widget::slotLoadProgress(int value)
+{
+    if (value == 100) {
+        slotLoadFinished(-1);
+    }
+}
+
+void Widget::slotLoadFinished(int status)
 {
     m_spinner->stop();
     mainLayout->setCurrentIndex(1);
+
+    if (status < 0) {
+        qDebug() << Q_FUNC_INFO << "Load progress: 100%";
+        return;
+    }
+
+    if (!status) {
+        qWarning() << Q_FUNC_INFO << "Load finished, error occurred!";
+        emit sigLoadErrorOccurred();
+    }
 }
 
 void Widget::slotPaletteTypeChanged(DGuiApplicationHelper::ColorType paletteType)

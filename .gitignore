@@ -43,7 +43,7 @@ target_wrapper.*
 CMakeLists.txt.user*
 
 # Qt qm files
-translations/*.qm
+*.qm
 
 # Debian dpkg-buildpackage
 debian/*.debhelper*

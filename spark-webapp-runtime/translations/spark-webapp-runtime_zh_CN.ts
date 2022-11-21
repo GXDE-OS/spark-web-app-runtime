@@ -187,6 +187,11 @@
         <source>%1Download canceled!</source>
         <translation>%1下载取消！</translation>
     </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="482"/>
+        <source>%1Load error occurred!</source>
+        <translation>%1加载存在错误！</translation>
+    </message>
 </context>
 <context>
     <name>TitleBarMenu</name>

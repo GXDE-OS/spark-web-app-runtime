@@ -71,6 +71,8 @@ private slots:
     void on_downloadResume(QWebEngineDownloadItem *item);
     void on_downloadCancel(QWebEngineDownloadItem *item);
 
+    void slotLoadErrorOccurred();
+
 private:
     QString m_title, m_url;
     int m_width, m_height;
