@@ -36,12 +36,18 @@ public:
     void setIcon(QString szIconPath);
     void setDescription(const QString &desc);
 
+    QString title() const;
+    QString tmpDir() const;
+
 protected:
     void keyPressEvent(QKeyEvent *event);
     void resizeEvent(QResizeEvent *event);
     void closeEvent(QCloseEvent *event);
 
 private:
+    void initLog();
+    void initTmpDir();
+
     void initUI();
     void initTitleBar();
     void initDownloadProgressBar();

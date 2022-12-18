@@ -2,6 +2,7 @@
 #define WEBENGINEVIEW_H
 
 #include <QWebEngineView>
+#include <QWebEngineNotification>
 
 // class WebEngineUrlRequestInterceptor;
 class WebEngineView : public QWebEngineView
@@ -12,6 +13,7 @@ public:
     explicit WebEngineView(QWidget *parent = nullptr);
 
     static void handleChromiumFlags();
+    static void present(std::unique_ptr<QWebEngineNotification> &newNotification);
 
 private:
     //    WebEngineUrlRequestInterceptor *interceptor = nullptr;

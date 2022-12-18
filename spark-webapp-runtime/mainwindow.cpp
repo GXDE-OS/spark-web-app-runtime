@@ -3,6 +3,7 @@
 #include "webengineview.h"
 #include "webenginepage.h"
 
+#include <DLog>
 #include <DWidgetUtil>
 #include <DTitlebar>
 #include <DMessageManager>
@@ -14,6 +15,10 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QStandardPaths>
+
+#include <unistd.h>
+
+DCORE_USE_NAMESPACE
 
 MainWindow::MainWindow(QString szTitle,
                        QString szUrl,
@@ -56,6 +61,9 @@ MainWindow::MainWindow(QString szTitle,
     , btnCancel(new DPushButton(QObject::tr("Cancel"), downloadProgressWidget))
     , isCanceled(false)
 {
+    initTmpDir();
+    initLog();
+
     initUI();
     initTrayIcon();
     initConnections();
@@ -88,6 +96,18 @@ void MainWindow::setDescription(const QString &desc)
     if (aboutDialog) {
         aboutDialog->setDescription(desc);
     }
+}
+
+QString MainWindow::title() const
+{
+    return m_title;
+}
+
+QString MainWindow::tmpDir() const
+{
+    QString orgName = qobject_cast<DApplication *>(qApp)->organizationName();
+    QString appName = qobject_cast<DApplication *>(qApp)->applicationName();
+    return QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + orgName + "/" + appName + "/" + m_title + "/" + QString::number(getuid());
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -125,6 +145,29 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
 
     DMainWindow::closeEvent(event);
+}
+
+void MainWindow::initLog()
+{
+    if (!QDir(tmpDir()).exists()) {
+        return;
+    }
+
+    DLogManager::setlogFilePath(tmpDir() + "/" + "log");
+    DLogManager::registerFileAppender();
+    DLogManager::registerConsoleAppender();
+}
+
+void MainWindow::initTmpDir()
+{
+    QDir dir(tmpDir());
+    dir.removeRecursively();
+    dir.mkpath(dir.path());
+    if (!dir.exists()) {
+        qCritical() << Q_FUNC_INFO << dir.path() << "not exists";
+        return;
+    }
+    qDebug() << Q_FUNC_INFO << dir.path() << "created";
 }
 
 void MainWindow::initUI()

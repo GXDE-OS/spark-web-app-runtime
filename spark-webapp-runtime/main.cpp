@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
     int fakeArgc = argc + 2;
     QVector<char *> fakeArgv(fakeArgc);
     fakeArgv[0] = argv[0];
-    fakeArgv[1] = QString("-platformtheme").toUtf8().data();
-    fakeArgv[2] = QString("deepin").toUtf8().data();
+    fakeArgv[1] = const_cast<char *>("-platformtheme");
+    fakeArgv[2] = const_cast<char *>("deepin");
     for (int i = 1; i < argc; i++) {
         fakeArgv[i + 2] = argv[i];
     }
@@ -347,6 +347,7 @@ int main(int argc, char *argv[])
 #endif
 
     MainWindow w(szTitle, szUrl, width, height, tray, fullScreen, fixSize, hideButtons);
+    a.setMainWindow(&w);
     QObject::connect(&a, &Application::newInstanceStarted, &w, &MainWindow::slotNewInstanceStarted);
     QObject::connect(&w, &MainWindow::sigClose, &a, &Application::slotMainWindowClose);
 

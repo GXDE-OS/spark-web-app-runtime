@@ -5,6 +5,13 @@
 WebEnginePage::WebEnginePage(QObject *parent)
     : QWebEnginePage(parent)
 {
+    connect(this, &QWebEnginePage::featurePermissionRequested, [&](const QUrl &origin, QWebEnginePage::Feature feature) {
+        if (feature != QWebEnginePage::Notifications) {
+            return;
+        }
+
+        setFeaturePermission(origin, feature, QWebEnginePage::PermissionGrantedByUser);
+    });
 }
 
 WebEnginePage::~WebEnginePage()

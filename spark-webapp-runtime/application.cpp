@@ -4,9 +4,15 @@
 #include <DPlatformWindowHandle>
 #include <DAboutDialog>
 
+#include <QStandardPaths>
+
+#include <unistd.h>
+
 Application::Application(int &argc, char **argv)
     : DApplication(argc, argv)
 {
+    saveLaunchParams(argc, argv);
+
     loadTranslator();
 
     setAttribute(Qt::AA_UseHighDpiPixmaps);
@@ -33,6 +39,33 @@ void Application::handleAboutAction()
 
     initAboutDialog();
     DApplication::handleAboutAction();
+}
+
+QStringList Application::launchParams() const
+{
+    return m_argv;
+}
+
+void Application::setMainWindow(MainWindow *window)
+{
+    m_mainWindow = window;
+}
+
+MainWindow *Application::mainWindow()
+{
+    return m_mainWindow;
+}
+
+void Application::saveLaunchParams(int &argc, char **argv)
+{
+    m_argc = argc;
+
+    m_argv.clear();
+    for (int i = 0; i < m_argc; i++) {
+        m_argv.append(argv[i]);
+    }
+
+    qDebug() << Q_FUNC_INFO << m_argc << m_argv;
 }
 
 void Application::initAboutDialog()
