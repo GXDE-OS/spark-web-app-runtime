@@ -1,3 +1,11 @@
+spark-webapp-runtime (1.7.0-1) stable; urgency=medium
+
+  * Transmit web notification to system notification center
+  * Fix a bug that force using dtk platform plugin does not work
+
+ -- shenmo <shenmo@spark-app.store>  Mon, 19 Dec 2022 10:00:00 +0800
+
+
 spark-webapp-runtime (1.6.6-1) stable; urgency=medium
 
   * Enable Chromium Dark Mode when startup if DTK theme is DarkType (Qt >= 5.15)

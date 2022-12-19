@@ -10,6 +10,7 @@ Build-Depends:
  libqt5gui5,
  libqt5widgets5,
  libqt5concurrent5,
+ libqt5dbus5,
  libqt5svg5-dev,
  qtwebengine5-dev,
  qttools5-private-dev,
@@ -21,19 +22,20 @@ Homepage: https://gitee.com/deepin-community-store/spark-web-app-runtime
 
 
 Package: spark-webapp-runtime
-Conflicts: store.spark-app.spark-webapp-runtime
-Replaces: store.spark-app.spark-webapp-runtime
-Provides: store.spark-app.spark-webapp-runtime
 Architecture: any
 Depends:${shlibs:Depends}, ${misc:Depends},
  libqt5core5a,
  libqt5gui5,
  libqt5widgets5,
  libqt5concurrent5,
+ libqt5dbus5,
  libqt5svg5,
  libqt5webenginewidgets5,
  libdtkcore5,
  libdtkgui5,
  libdtkwidget5
+Conflicts: store.spark-app.spark-webapp-runtime
+Provides: store.spark-app.spark-webapp-runtime
+Replaces: store.spark-app.spark-webapp-runtime
 Description: Spark WebApp Runtime
  A simple solution for packaging web apps.
