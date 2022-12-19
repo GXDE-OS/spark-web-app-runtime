@@ -21,9 +21,11 @@ WebEngineView::WebEngineView(QWidget *parent)
         //        page()->setUrlRequestInterceptor(interceptor);
         //        page()->settings()->setAttribute(QWebEngineSettings::WebAttribute::LocalContentCanAccessRemoteUrls, true);
         page()->profile()->setHttpAcceptLanguage(QLocale::system().name());
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 13, 0))
         page()->profile()->setNotificationPresenter([&](std::unique_ptr<QWebEngineNotification> notification) {
             WebEngineView::present(notification);
         });
+#endif
     });
 }
 
@@ -59,6 +61,7 @@ void WebEngineView::handleChromiumFlags()
     qDebug() << Q_FUNC_INFO << "QTWEBENGINE_CHROMIUM_FLAGS=" + qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
 }
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 13, 0))
 void WebEngineView::present(std::unique_ptr<QWebEngineNotification> &newNotification)
 {
     qDebug() << Q_FUNC_INFO << "New notification received:" << newNotification->title() << newNotification->message();
@@ -93,3 +96,4 @@ void WebEngineView::present(std::unique_ptr<QWebEngineNotification> &newNotifica
         .hints(hints)
         .call();
 }
+#endif
