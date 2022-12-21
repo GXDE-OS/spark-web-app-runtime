@@ -26,8 +26,6 @@ Application::Application(int &argc, char **argv)
     setProductName(DEFAULT_TITLE);
     setApplicationDisplayName(DEFAULT_TITLE);
     setApplicationLicense(" <a href='https://www.gnu.org/licenses/gpl-3.0.html'>GPLv3</a> ");
-
-    initAboutDialog();
 }
 
 void Application::handleAboutAction()
@@ -109,6 +107,5 @@ void Application::slotMainWindowClose()
 {
     if (aboutDialog()) {
         aboutDialog()->close();
-        aboutDialog()->deleteLater();
     }
 }
