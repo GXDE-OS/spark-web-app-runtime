@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
+        <file>css/webkit-scrollbar.css</file>
         <file>images/spark-webapp-runtime.svg</file>
         <file>images/Logo-Spark.png</file>
         <file>images/go-previous-24.svg</file>

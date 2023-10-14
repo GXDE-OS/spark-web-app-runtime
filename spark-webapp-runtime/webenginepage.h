@@ -16,6 +16,9 @@ public:
 protected:
     QWebEnginePage *createWindow(WebWindowType type) override;
 
+private:
+    void initScrollBarStyle();
+
 private slots:
     void slotUrlChanged(const QUrl &url);
 
