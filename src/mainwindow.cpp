@@ -3,6 +3,7 @@
 #include "webengineview.h"
 #include "webenginepage.h"
 
+#include <DPlatformWindowHandle>
 #include <DLog>
 #include <DWidgetUtil>
 #include <DTitlebar>
@@ -50,8 +51,8 @@ MainWindow::MainWindow(QString szTitle,
     , m_clearCache(new QAction(QObject::tr("Clear Cache"), this))
     , t_menu(new QMenu(this))
     , t_show(new QAction(QObject::tr("Show MainWindow"), this))
-    , t_about(new QAction(qApp->translate("TitleBarMenu", "About"), this))
-    , t_exit(new QAction(qApp->translate("TitleBarMenu", "Exit"), this))
+    , t_about(new QAction(qApp->translate("TitleBarMenu", QString("About").toUtf8().data()), this))
+    , t_exit(new QAction(qApp->translate("TitleBarMenu", QString("Exit").toUtf8().data()), this))
     , downloadMessage(new DFloatingMessage(DFloatingMessage::ResidentType, this))
     , downloadProgressWidget(new QWidget(downloadMessage))
     , progressBarLayout(new QHBoxLayout(downloadProgressWidget))
@@ -73,9 +74,22 @@ MainWindow::~MainWindow()
 {
 }
 
+bool MainWindow::event(QEvent *event)
+{
+    /**
+     * @bug QWebEngineView in Qt6 will recreate window handle
+     * @ref https://github.com/linuxdeepin/deepin-deepinid-client/commit/2a305926a9047c699cf4d12e3e64aae17e8c367b
+     */
+    if (event->type() == QEvent::WinIdChange) {
+        DPlatformWindowHandle handle(this);
+    }
+
+    return DMainWindow::event(event);
+}
+
 void MainWindow::setIcon(QString szIconPath)
 {
-    if (!QFileInfo(szIconPath).exists()) {
+    if (!QFile::exists(szIconPath)) {
         return;
     }
 
@@ -83,19 +97,13 @@ void MainWindow::setIcon(QString szIconPath)
     setWindowIcon(QIcon(szIconPath));
     m_tray->setIcon(QIcon(szIconPath));
 
-    DAboutDialog *aboutDialog = qobject_cast<Application *>(qApp)->aboutDialog();
-    if (aboutDialog) {
-        aboutDialog->setWindowIcon(QIcon::fromTheme(szIconPath));
-        aboutDialog->setProductIcon(QIcon::fromTheme(szIconPath));
-    }
+    qApp->setWindowIcon(QIcon::fromTheme(szIconPath));
+    qApp->setProductIcon(QIcon::fromTheme(szIconPath));
 }
 
 void MainWindow::setDescription(const QString &desc)
 {
-    DAboutDialog *aboutDialog = qobject_cast<Application *>(qApp)->aboutDialog();
-    if (aboutDialog) {
-        aboutDialog->setDescription(desc);
-    }
+    qApp->setApplicationDescription(desc);
 }
 
 QString MainWindow::title() const
@@ -156,6 +164,7 @@ void MainWindow::initLog()
     DLogManager::setlogFilePath(tmpDir() + "/" + "log");
     DLogManager::registerFileAppender();
     DLogManager::registerConsoleAppender();
+    DLogManager::registerJournalAppender();
 }
 
 void MainWindow::initTmpDir()
@@ -242,7 +251,7 @@ void MainWindow::initDownloadProgressBar()
     btnResume->setFixedSize(80, 32);
     btnCancel->setFixedSize(80, 32);
 
-    progressBarLayout->setMargin(0);
+    progressBarLayout->setContentsMargins(0, 0, 0, 0);
     progressBarLayout->setSpacing(0);
     progressBarLayout->setAlignment(Qt::AlignCenter);
     progressBarLayout->addWidget(downloadProgressBar);
@@ -251,7 +260,7 @@ void MainWindow::initDownloadProgressBar()
     progressBarLayout->addWidget(btnResume);
     progressBarLayout->addWidget(btnCancel);
 
-    downloadMessage->setIcon(QIcon::fromTheme("deepin-download").pixmap(64, 64));
+    downloadMessage->setIcon(QIcon::fromTheme("deepin-download"));
     downloadMessage->setWidget(downloadProgressWidget);
     downloadMessage->hide();
 }
@@ -301,7 +310,7 @@ void MainWindow::initConnections()
         fixSize();
     });
     connect(t_about, &QAction::triggered, this, [=]() {
-        qobject_cast<Application *>(qApp)->handleAboutAction();
+        qobject_cast<Application *>(qApp)->triggerAboutAction();
     });
     connect(t_exit, &QAction::triggered, this, [=]() {
         exit(0);
@@ -322,14 +331,14 @@ void MainWindow::fullScreen()
         m_fixSize->setDisabled(true);
         m_menu->update();
         showFullScreen();
-        // DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-information").pixmap(64, 64), QString(QObject::tr("%1Fullscreen Mode")).arg("    "));
+        // DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-information"), QString(QObject::tr("%1Fullscreen Mode")).arg("    "));
     } else {
         if (!m_isFixedSize) {
             m_fixSize->setDisabled(false); // 命令行参数没有固定窗口大小时，窗口模式下允许手动选择固定窗口大小
         }
         m_menu->update();
         showNormal();
-        // DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-information").pixmap(64, 64), QString(QObject::tr("%1Windowed Mode")).arg("    "));
+        // DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-information"), QString(QObject::tr("%1Windowed Mode")).arg("    "));
     }
 }
 
@@ -382,7 +391,7 @@ QString MainWindow::saveAs(QString fileName)
                                                     QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) + "/" + fileName);
     if (!saveFile.isEmpty()) {
         // 判断上层目录是否可写入
-        if (QFileInfo(QFileInfo(saveFile).absolutePath()).isWritable()) {
+        if (QFileInfo(QFileInfo(saveFile).absoluteDir().canonicalPath()).isWritable()) {
             return saveFile;
         } else {
             return saveAs(fileName);
@@ -412,40 +421,46 @@ void MainWindow::on_trayIconActivated(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
-void MainWindow::on_downloadStart(QWebEngineDownloadItem *item)
+void MainWindow::on_downloadStart(QWebEngineDownloadRequest *request)
 {
     // 尝试加锁互斥量，禁止同时下载多个文件
     if (mutex.tryLock()) {
-        QString fileName = QFileInfo(item->path()).fileName();
+        QString fileName = request->suggestedFileName();
         QString filePath = saveAs(fileName);
         if (filePath.isEmpty()) {
             mutex.unlock();
             return;
         }
-        item->setPath(filePath);
-        filePath = QFileInfo(item->path()).absoluteFilePath();
 
-        connect(item, &QWebEngineDownloadItem::downloadProgress, this, &MainWindow::on_downloadProgress);
-        connect(item, &QWebEngineDownloadItem::finished, this, [=]() {
+        QFileInfo fileInfo(filePath);
+        fileName = fileInfo.fileName();
+        QString dirPath = fileInfo.absoluteDir().canonicalPath();
+        filePath = QDir(dirPath).absoluteFilePath(fileName);
+
+        request->setDownloadDirectory(dirPath);
+        request->setDownloadFileName(fileName);
+
+        connect(request, &QWebEngineDownloadRequest::receivedBytesChanged, this, &MainWindow::on_receivedBytesChanged);
+        connect(request, &QWebEngineDownloadRequest::isFinishedChanged, this, [=]() {
             on_downloadFinish(filePath);
         });
 
         connect(btnPause, &DPushButton::clicked, this, [=]() {
-            on_downloadPause(item);
+            on_downloadPause(request);
         });
         connect(btnResume, &DPushButton::clicked, this, [=]() {
-            on_downloadResume(item);
+            on_downloadResume(request);
         });
         connect(btnCancel, &DPushButton::clicked, this, [=]() {
-            on_downloadCancel(item);
+            on_downloadCancel(request);
         });
 
         DFloatingMessage *message = new DFloatingMessage(DFloatingMessage::TransientType);
-        message->setIcon(QIcon::fromTheme("dialog-information").pixmap(64, 64));
-        message->setMessage(QString(QObject::tr("%1Start downloading %2")).arg("    ").arg(fileName));
+        message->setIcon(QIcon::fromTheme("dialog-information"));
+        message->setMessage(QObject::tr("%1Start downloading %2").arg("    ", fileName));
         DMessageManager::instance()->sendMessage(this, message);
 
-        item->accept();
+        request->accept();
 
         // 重置 DownloadProgressBar 状态
         isCanceled = false;
@@ -453,14 +468,16 @@ void MainWindow::on_downloadStart(QWebEngineDownloadItem *item)
         btnPause->show();
         this->downloadMessage->show(); // 上一次下载完成后隐藏了进度条，这里要重新显示
     } else {
-        DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-cancel").pixmap(64, 64), QString(QObject::tr("%1Wait for previous download to complete!")).arg("    "));
+        DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-cancel"), QString(QObject::tr("%1Wait for previous download to complete!")).arg("    "));
     }
 }
 
-void MainWindow::on_downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
+void MainWindow::on_receivedBytesChanged()
 {
-    int value = int(double(bytesReceived) / double(bytesTotal) * 100.0);
-    downloadProgressBar->setValue(value);
+    QWebEngineDownloadRequest *request = qobject_cast<QWebEngineDownloadRequest *>(sender());
+
+    int value = int(double(request->receivedBytes()) / double(request->totalBytes()) * 100.0);
+    downloadProgressBar->setValue(qBound(downloadProgressBar->value(), value, 100));
 
     downloadMessage->setMessage("    " + QString::number(value) + "%");
 
@@ -469,6 +486,11 @@ void MainWindow::on_downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 
 void MainWindow::on_downloadFinish(QString filePath)
 {
+    QWebEngineDownloadRequest *request = qobject_cast<QWebEngineDownloadRequest *>(sender());
+    if (!request->isFinished()) {
+        return;
+    }
+
     mutex.unlock(); // 解锁互斥量，允许下载新文件
 
     downloadMessage->hide();
@@ -478,8 +500,8 @@ void MainWindow::on_downloadFinish(QString filePath)
         DPushButton *button = new DPushButton(QObject::tr("Open"));
 
         DFloatingMessage *message = new DFloatingMessage(DFloatingMessage::ResidentType);
-        message->setIcon(QIcon::fromTheme("dialog-ok").pixmap(64, 64));
-        message->setMessage(QString("    %1 %2 %3").arg(QFileInfo(filePath).fileName()).arg(QObject::tr("download finished.")).arg(QObject::tr("Show in file manager?")));
+        message->setIcon(QIcon::fromTheme("dialog-ok"));
+        message->setMessage(QString("    %1 %2 %3").arg(QFileInfo(filePath).fileName(), QObject::tr("download finished."), QObject::tr("Show in file manager?")));
         message->setWidget(button);
         DMessageManager::instance()->sendMessage(this, message);
 
@@ -491,36 +513,36 @@ void MainWindow::on_downloadFinish(QString filePath)
     }
 }
 
-void MainWindow::on_downloadPause(QWebEngineDownloadItem *item)
+void MainWindow::on_downloadPause(QWebEngineDownloadRequest *request)
 {
-    item->pause();
+    request->pause();
 
-    downloadMessage->setIcon(QIcon::fromTheme("package-download-failed").pixmap(64, 64));
+    downloadMessage->setIcon(QIcon::fromTheme("package-download-failed"));
     btnResume->show();
     btnPause->hide();
 }
 
-void MainWindow::on_downloadResume(QWebEngineDownloadItem *item)
+void MainWindow::on_downloadResume(QWebEngineDownloadRequest *request)
 {
-    item->resume();
+    request->resume();
 
-    downloadMessage->setIcon(QIcon::fromTheme("deepin-download").pixmap(64, 64));
+    downloadMessage->setIcon(QIcon::fromTheme("deepin-download"));
     btnResume->hide();
     btnPause->show();
 }
 
-void MainWindow::on_downloadCancel(QWebEngineDownloadItem *item)
+void MainWindow::on_downloadCancel(QWebEngineDownloadRequest *request)
 {
     isCanceled = true; // 取消下载
-    item->cancel();
+    request->cancel();
 
     mutex.unlock();
 
     downloadMessage->hide();
-    DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-error").pixmap(64, 64), QString(QObject::tr("%1Download canceled!")).arg("    "));
+    DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-error"), QString(QObject::tr("%1Download canceled!")).arg("    "));
 }
 
 void MainWindow::slotLoadErrorOccurred()
 {
-    DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-warning").pixmap(64, 64), QString(QObject::tr("%1Load error occurred!")).arg("    "));
+    DMessageManager::instance()->sendMessage(this, QIcon::fromTheme("dialog-warning"), QString(QObject::tr("%1Load error occurred!")).arg("    "));
 }

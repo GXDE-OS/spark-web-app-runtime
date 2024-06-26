@@ -1,7 +1,0 @@
-#!/bin/bash
-
-if [ "$1" = "remove" -o "$1" = "purge" ] ; then
-	# Remove residual symbol links
-	rm -f /usr/bin/spark-webapp-runtime
-	rm -rf /usr/share/spark-webapp-runtime
-fi

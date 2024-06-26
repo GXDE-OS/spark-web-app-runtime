@@ -32,6 +32,7 @@ public:
                bool nHideButtons = false,
                QWidget *parent = nullptr);
     ~MainWindow();
+    bool event(QEvent *event) override;
 
     void setIcon(QString szIconPath);
     void setDescription(const QString &desc);
@@ -70,12 +71,12 @@ public slots:
 private slots:
     void on_trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 
-    void on_downloadStart(QWebEngineDownloadItem *item);
-    void on_downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+    void on_downloadStart(QWebEngineDownloadRequest *request);
+    void on_receivedBytesChanged();
     void on_downloadFinish(QString filePath);
-    void on_downloadPause(QWebEngineDownloadItem *item);
-    void on_downloadResume(QWebEngineDownloadItem *item);
-    void on_downloadCancel(QWebEngineDownloadItem *item);
+    void on_downloadPause(QWebEngineDownloadRequest *request);
+    void on_downloadResume(QWebEngineDownloadRequest *request);
+    void on_downloadCancel(QWebEngineDownloadRequest *request);
 
     void slotLoadErrorOccurred();
 

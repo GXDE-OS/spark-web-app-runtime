@@ -8,7 +8,6 @@
 #include "httpd.h"
 
 #include <DSysInfo>
-#include <DApplicationSettings>
 
 #include <QCommandLineParser>
 #include <QCommandLineOption>
@@ -19,26 +18,14 @@
 
 int main(int argc, char *argv[])
 {
-    if (!QString(qgetenv("XDG_CURRENT_DESKTOP")).toLower().startsWith("deepin")) {
-        qputenv("XDG_CURRENT_DESKTOP", "Deepin");
-    }
-
     // 龙芯机器配置,使得 DApplication 能正确加载 QTWEBENGINE
     qputenv("DTK_FORCE_RASTER_WIDGETS", "FALSE");
+
 //    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-features=UseModernMediaControls");
 //    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-web-security");
-#ifdef __sw_64__
+#if defined __sw_64__ || __loongarch__
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--no-sandbox");
 #endif
-
-    if (!Dtk::Core::DSysInfo::isDDE()) {
-#ifndef DSTORE_NO_DXCBs
-        DApplication::loadDXcbPlugin();
-#endif
-    }
-
-    // 开启 HiDPI 缩放支持
-    DApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     // 强制使用 DTK 平台插件
     int fakeArgc = argc + 2;
@@ -50,9 +37,6 @@ int main(int argc, char *argv[])
         fakeArgv[i + 2] = argv[i];
     }
     Application a(fakeArgc, fakeArgv.data());
-
-    // 保存 DTK 主题
-    DApplicationSettings settings;
 
     // 解析命令行启动参数
     QCommandLineParser parser;
@@ -180,10 +164,7 @@ int main(int argc, char *argv[])
 #if SSL_SERVER
     quint16 u16sslPort = 0;
 #endif
-    QString szDefaultDesc = QString("<a href='https://gitee.com/deepin-community-store/spark-web-app-runtime'><span style='font-size:12pt;font-weight:500;'>%1</span></a><br/>"
-                                    "<span style='font-size:12pt;'>%2</span>")
-                                .arg(DEFAULT_TITLE)
-                                .arg(QObject::tr("Presented By Spark developers # HadesStudio"));
+    QString szDefaultDesc = QObject::tr("Presented By Spark developers # HadesStudio");
 
     // 解析可能存在的配置文件
     QString szCfgFile = DEFAULT_CFG;

@@ -13,16 +13,18 @@ class Application : public DApplication
 
 public:
     Application(int &argc, char **argv);
-    void handleAboutAction() override;
+    void triggerAboutAction();
 
     QStringList launchParams() const;
 
     void setMainWindow(MainWindow *window);
     MainWindow *mainWindow();
 
+protected:
+    void handleAboutAction() override;
+
 private:
     void saveLaunchParams(int &argc, char **argv);
-    void initAboutDialog();
 
 signals:
     void sigQuit();

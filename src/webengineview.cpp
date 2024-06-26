@@ -34,7 +34,7 @@ void WebEngineView::handleChromiumFlags()
     DGuiApplicationHelper::ColorType themeType = DGuiApplicationHelper::instance()->themeType();
 
     QString env = qgetenv("QTWEBENGINE_CHROMIUM_FLAGS");
-    QStringList flags = env.split(" ", QString::SkipEmptyParts);
+    QStringList flags = env.split(" ", Qt::SkipEmptyParts);
 
     /**
      * --blink-settings=preferredColorScheme=0 强制 prefers-color-scheme=dark (>= 5.14)

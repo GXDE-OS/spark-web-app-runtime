@@ -1,39 +1,28 @@
 #!/usr/bin/make -f
 
-export QT_SELECT=5
 include /usr/share/dpkg/default.mk
 
-DEB_BUILD_ARCH ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
-DH_AUTO_ARGS = --parallel --buildsystem=qmake
+export QT_SELECT = qt6
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+DEB_CFLAGS ?= $(shell dpkg-buildflags --get CFLAGS)
+DEB_CPPFLAGS ?= $(shell dpkg-buildflags --get CPPFLAGS)
+DEB_CXXFLAGS ?= $(shell dpkg-buildflags --get CXXFLAGS)
 
 # Uncomment this to turn on verbose mode.
-# export DH_VERBOSE=1
+#export DH_VERBOSE = 1
 
 %:
 	dh $@ --parallel
 
-override_dh_auto_clean:
-	rm -rf $(CURDIR)/build
-
-
 override_dh_auto_configure:
-	mkdir -p $(CURDIR)/build
+	dh_auto_configure -- \
+	-DVERSION=$(DEB_VERSION_UPSTREAM) \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DCMAKE_C_FLAGS="$(DEB_CFLAGS) $(DEB_CPPFLAGS)" \
+	-DCMAKE_CXX_FLAGS="$(DEB_CXXFLAGS) $(DEB_CPPFLAGS)"
 
-	dh_auto_configure MAKEFLAGS=-j$(JOBS) -- spark-webapp-runtime.pro \
-	-spec linux-g++ CONFIG+=qtquickcompiler \
-	-o $(CURDIR)/build/
-
-
-override_dh_auto_build:
-	make -C $(CURDIR)/build -j$(JOBS)
-
-
-override_dh_auto_install:
-	make -C $(CURDIR)/build install \
-	INSTALL_ROOT=$(CURDIR)/debian/spark-webapp-runtime
-
-
-# Ignore the dpkg-shlibdeps: warning (it uses none of the library's symbols)
-# Qt Mutidedia lib will ref to network libraray.
+#Ignore the dpkg-shlibdeps: warning (it uses none of the library's symbols)
+#Qt Mutidedia lib will ref to network libraray.
 override_dh_shlibdeps:
 	dh_shlibdeps --dpkg-shlibdeps-params=--warnings=0

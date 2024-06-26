@@ -6,6 +6,7 @@
 *.la
 *.lai
 *.so
+*.so.*
 *.dll
 *.dylib
 
@@ -28,6 +29,8 @@ ui_*.h
 *.jsc
 Makefile*
 *build-*
+*.qm
+*.prl
 
 # Qt unit tests
 target_wrapper.*
@@ -42,13 +45,21 @@ target_wrapper.*
 # QtCreator CMake
 CMakeLists.txt.user*
 
-# Qt qm files
-*.qm
+# QtCreator 4.8< compilation database
+compile_commands.json
 
-# Debian dpkg-buildpackage
+# QtCreator local machine specific files for imported projects
+*creator.user*
+
+*_qmlcache.qrc
+
+# debian
 debian/*.debhelper*
 debian/files
 debian/*.substvars
 debian/spark-webapp-runtime
 
+# Others
 build
+obj-*
+.vscode

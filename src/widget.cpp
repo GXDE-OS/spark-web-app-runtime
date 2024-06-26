@@ -58,7 +58,7 @@ void Widget::initUI()
 
     QWidget *spinnerWidget = new QWidget(this);
     QHBoxLayout *spinnerLayout = new QHBoxLayout(spinnerWidget);
-    spinnerLayout->setMargin(0);
+    spinnerLayout->setContentsMargins(0, 0, 0, 0);
     spinnerLayout->setSpacing(0);
     spinnerLayout->setAlignment(Qt::AlignCenter);
     spinnerLayout->addStretch();

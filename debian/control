@@ -3,37 +3,24 @@ Maintainer: shenmo <shenmo@spark-app.store>
 Section: utils
 Priority: optional
 Build-Depends:
- debhelper (>= 9),
+ debhelper (>= 11),
+ cmake (>= 3.12),
  pkg-config,
  qtchooser (>= 55-gc9562a1-1~),
- libqt5core5a,
- libqt5gui5,
- libqt5widgets5,
- libqt5concurrent5,
- libqt5dbus5,
- libqt5svg5-dev,
- qtwebengine5-dev,
- qttools5-private-dev,
- libdtkcore-dev (>= 5.0),
- libdtkgui-dev (>= 5.0),
- libdtkwidget-dev (>= 5.0)
+ qt6-base-dev,
+ qt6-tools-dev,
+ qt6-webengine-dev,
+ libdtkcommon-dev,
+ libdtk6core-dev,
+ libdtk6gui-dev,
+ libdtk6widget-dev
 Standards-Version: 1.0
 Homepage: https://gitee.com/deepin-community-store/spark-web-app-runtime
 
 
 Package: spark-webapp-runtime
 Architecture: any
-Depends:${shlibs:Depends}, ${misc:Depends},
- libqt5core5a,
- libqt5gui5,
- libqt5widgets5,
- libqt5concurrent5,
- libqt5dbus5,
- libqt5svg5,
- libqt5webenginewidgets5,
- libdtkcore5,
- libdtkgui5,
- libdtkwidget5
+Depends:${shlibs:Depends}, ${misc:Depends}
 Conflicts: store.spark-app.spark-webapp-runtime
 Provides: store.spark-app.spark-webapp-runtime
 Replaces: store.spark-app.spark-webapp-runtime

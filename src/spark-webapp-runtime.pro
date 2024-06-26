@@ -1,4 +1,4 @@
-QT += core gui webenginewidgets svg concurrent dbus
+QT += core gui concurrent webenginewidgets
 
 greaterThan(QT_MAJOR_VERSION, 5): QT += widgets
 
@@ -6,8 +6,8 @@ TEMPLATE = app
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
-CONFIG += c++11 link_pkgconfig
-PKGCONFIG += dtkcore dtkgui dtkwidget
+CONFIG += c++17 link_pkgconfig
+PKGCONFIG += dtk6core dtk6gui dtk6widget
 
 HEADERS += \
         mainwindow.h \
@@ -31,18 +31,7 @@ SOURCES += \
         webengineurlrequestinterceptor.cpp
 
 RESOURCES += \
-          resources/resources.qrc
+        resources/resources.qrc
 
 TRANSLATIONS += \
-             translations/spark-webapp-runtime_zh_CN.ts
-
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/durapps/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
-
-# Rules for deployment
-qm.files += translations/*.qm
-qm.path = /opt/durapps/$${TARGET}/share/$${TARGET}/translations
-
-INSTALLS += qm
+        ../translations/spark-webapp-runtime_zh_CN.ts
