@@ -258,10 +258,11 @@ int main(int argc, char *argv[])
     if (parser.isSet(useGPU)) {
         toUseGPU = parser.value(useGPU).toUInt();
     }
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-web-security);
     if (toUseGPU == true) {
-        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode");
+        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode --disable-web-security);
 #ifdef __sw_64__
-        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode --no-sandbox");
+        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode --disable-web-security --no-sandbox");
 #endif
         qDebug() << "Setting GPU to True.";
     }
