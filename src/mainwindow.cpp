@@ -39,7 +39,7 @@ MainWindow::MainWindow(QString szTitle,
     , m_isFullScreen(nFullScreen)
     , m_isFixedSize(nFixSize)
     , m_isHideButton(nHideButtons)
-    , m_widget(new Widget(m_url, this))
+    , m_widget(new Widget(m_url, this, m_title))
     , m_tray(new QSystemTrayIcon(this))
     , btnBack(new DToolButton(titlebar()))
     , btnForward(new DToolButton(titlebar()))

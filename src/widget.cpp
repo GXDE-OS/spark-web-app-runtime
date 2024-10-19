@@ -2,16 +2,19 @@
 #include "webengineview.h"
 #include "webenginepage.h"
 
+#include <QDir>
+#include <QWebEngineProfile>
 #include <DApplication>
 
 DWIDGET_USE_NAMESPACE
 
-Widget::Widget(QString szUrl, QWidget *parent)
+Widget::Widget(QString szUrl, QWidget *parent, QString szTitle)
     : QWidget(parent)
     , m_webEngineView(new WebEngineView(this))
     , m_spinner(new DSpinner(this))
     , mainLayout(new QStackedLayout(this))
     , m_szUrl(szUrl)
+    , m_szTitle(szTitle)
 {
     initUI();
     initConnections();
@@ -54,6 +57,15 @@ void Widget::initUI()
     page->setUrl(QUrl());
     if (!m_szUrl.isEmpty()) {
         page->setUrl(QUrl(m_szUrl));
+        // 设置新的 cookie 路径以防止冲突（https://gitee.com/spark-store-project/spark-web-app-runtime/issues/IA759Q）
+        QString cookiePath = QDir::homePath() +
+                            "/.config/spark-webapp-runtime/" +
+                            QUrl::toPercentEncoding(m_szTitle);  // 使用 url 转移以便正确将标题做为文件名
+        QWebEngineProfile *profile = page->profile();
+        if (!QDir(cookiePath).exists()) {
+            QDir().mkpath(cookiePath);
+        }
+        profile->setPersistentStoragePath(cookiePath);
     }
 
     QWidget *spinnerWidget = new QWidget(this);
