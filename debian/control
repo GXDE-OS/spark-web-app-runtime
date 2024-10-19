@@ -30,7 +30,7 @@ Depends:${shlibs:Depends}, ${misc:Depends},
  libqt5concurrent5,
  libqt5dbus5,
  libqt5svg5,
- libqt5webenginewidgets5,
+ libqt5webenginewidgets5(>= 5.15),
  libdtkcore5,
  libdtkgui5,
  libdtkwidget5

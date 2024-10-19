@@ -1,7 +1,7 @@
-spark-webapp-runtime (1.7.0-1) stable; urgency=medium
+spark-webapp-runtime (1.8) stable; urgency=medium
 
-  * Transmit web notification to system notification center
-  * Fix a bug that force using dtk platform plugin does not work
+  * Fix: Now won't lock cookies.
+  * Feat: Support local html files
 
  -- shenmo <shenmo@spark-app.store>  Mon, 19 Dec 2022 10:00:00 +0800
 
