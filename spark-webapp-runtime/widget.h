@@ -17,7 +17,7 @@ class Widget : public QWidget
     Q_OBJECT
 
 public:
-    explicit Widget(QString szUrl = nullptr, QWidget *parent = nullptr);
+    explicit Widget(QString szUrl = nullptr, QWidget *parent = nullptr, QString szTitle = nullptr);
     ~Widget();
 
     QWebEnginePage *getPage();
@@ -46,6 +46,7 @@ private:
     QStackedLayout *mainLayout = nullptr;
 
     QString m_szUrl;
+    QString m_szTitle;
 };
 
 #endif // WIDGET_H
