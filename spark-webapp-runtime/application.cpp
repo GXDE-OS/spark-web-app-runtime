@@ -29,7 +29,7 @@ Application::Application(int &argc, char **argv)
     setWindowIcon(QIcon(":/images/spark-webapp-runtime.svg"));
 
     setProductIcon(QIcon(":/images/spark-webapp-runtime.svg"));
-    setProductName(websiteLinkTemplate.arg("https://gitee.com/deepin-community-store/spark-web-app-runtime", DEFAULT_TITLE));
+    setProductName(websiteLinkTemplate.arg("https://gitee.com/spark-store-project/spark-web-app-runtime", DEFAULT_TITLE));
     setApplicationDescription(QObject::tr("Presented By Spark developers # HadesStudio"));
     setApplicationLicense(websiteLinkTemplate.arg("https://gitee.com/spark-store-project/spark-web-app-runtime/blob/master/LICENSE", "GPLv3"));
 }
@@ -65,7 +65,7 @@ void Application::handleAboutAction()
         // WebsiteName
         dialog->setWebsiteName("Spark Project");
         // WebsiteLink
-        dialog->setWebsiteLink("https://gitee.com/deepin-community-store/");
+        dialog->setWebsiteLink("https://gitee.com/spark-store-project/");
     }
 }
 
