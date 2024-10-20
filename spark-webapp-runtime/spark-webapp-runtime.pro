@@ -1,4 +1,4 @@
-QT += core gui webenginewidgets concurrent
+QT += core gui webenginewidgets concurrent dbus
 
 greaterThan(QT_MAJOR_VERSION, 5): QT += widgets
 
