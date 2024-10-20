@@ -4,7 +4,6 @@
 #include <QObject>
 
 #define DEFAULT_TITLE QObject::tr("SparkWebAppRuntime")
-#define APPLICATION_NAME QString("spark-webapp-runtime")
 #define ORGANIZATION_NAME QString("spark-union")
 #define DEFAULT_URL QString("qrc:/help/help.html")
 #define DEFAULT_WIDTH (1024)
@@ -17,7 +16,5 @@
 #define DEFAULT_ROOT QString()
 #define DEFAULT_PORT 0
 #define DEFAULT_GPU 1
-
-#define CURRENT_VER QString("1.7.0")
 
 #endif // GLOBALDEFINE_H

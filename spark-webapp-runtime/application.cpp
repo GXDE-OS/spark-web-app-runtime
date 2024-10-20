@@ -8,6 +8,8 @@
 
 #include <unistd.h>
 
+const QString websiteLinkTemplate = "<a href='%1' style='text-decoration: none; color: rgba(0,129,255,0.9);'>%2</a>";
+
 Application::Application(int &argc, char **argv)
     : DApplication(argc, argv)
 {
@@ -20,23 +22,21 @@ Application::Application(int &argc, char **argv)
         setAttribute(Qt::AA_DontCreateNativeWidgetSiblings, true);
     }
 
-    setApplicationVersion(QString(CURRENT_VER));
     setOrganizationName(ORGANIZATION_NAME); // 添加组织名称，和商店主体的文件夹同在 ~/.local/share/spark-union 文件夹下
-    setApplicationName(APPLICATION_NAME); // 这里不要翻译，否则 ~/.local/share 中文件夹名也会被翻译
-    setProductName(DEFAULT_TITLE);
+    setApplicationName(PROJECT_NAME); // 这里不要翻译，否则 ~/.local/share 中文件夹名也会被翻译
+    setApplicationVersion(APP_VERSION);
     setApplicationDisplayName(DEFAULT_TITLE);
-    setApplicationLicense(" <a href='https://www.gnu.org/licenses/gpl-3.0.html'>GPLv3</a> ");
+    setWindowIcon(QIcon(":/images/spark-webapp-runtime.svg"));
+
+    setProductIcon(QIcon(":/images/spark-webapp-runtime.svg"));
+    setProductName(websiteLinkTemplate.arg("https://gitee.com/deepin-community-store/spark-web-app-runtime", DEFAULT_TITLE));
+    setApplicationDescription(QObject::tr("Presented By Spark developers # HadesStudio"));
+    setApplicationLicense(websiteLinkTemplate.arg("https://gitee.com/spark-store-project/spark-web-app-runtime/blob/master/LICENSE", "GPLv3"));
 }
 
-void Application::handleAboutAction()
+void Application::triggerAboutAction()
 {
-    if (aboutDialog()) {
-        DApplication::handleAboutAction();
-        return;
-    }
-
-    initAboutDialog();
-    DApplication::handleAboutAction();
+    handleAboutAction();
 }
 
 QStringList Application::launchParams() const
@@ -54,6 +54,21 @@ MainWindow *Application::mainWindow()
     return m_mainWindow;
 }
 
+void Application::handleAboutAction()
+{
+    DApplication::handleAboutAction();
+
+    DAboutDialog *dialog = aboutDialog();
+    if (dialog) {
+        // CompanyLogo
+        dialog->setCompanyLogo(QPixmap(":/images/Logo-Spark.png"));
+        // WebsiteName
+        dialog->setWebsiteName("Spark Project");
+        // WebsiteLink
+        dialog->setWebsiteLink("https://gitee.com/deepin-community-store/");
+    }
+}
+
 void Application::saveLaunchParams(int &argc, char **argv)
 {
     m_argc = argc;
@@ -64,43 +79,6 @@ void Application::saveLaunchParams(int &argc, char **argv)
     }
 
     qDebug() << Q_FUNC_INFO << m_argc << m_argv;
-}
-
-void Application::initAboutDialog()
-{
-    // Customized DAboutDialog
-    DAboutDialog *dialog = new DAboutDialog(activeWindow());
-    // WindowIcon
-    dialog->setWindowIcon(QIcon(":/images/spark-webapp-runtime.svg"));
-    // ProductIcon
-    dialog->setProductIcon(QIcon(":/images/spark-webapp-runtime.svg"));
-    // ProductName
-    dialog->setProductName(productName());
-    // Version
-    dialog->setVersion(translate("DAboutDialog", "Version: %1").arg(applicationVersion()));
-    // CompanyLogo
-    dialog->setCompanyLogo(QPixmap(":/images/Logo-Spark.png"));
-    // Description
-
-    QString szDefaultDesc = QString("<a href='https://gitee.com/deepin-community-store/spark-web-app-runtime'><span style='font-size:12pt;font-weight:500;'>%1</span></a><br/>"
-                                    "<span style='font-size:12pt;'>%2</span>")
-                                .arg(DEFAULT_TITLE)
-                                .arg(QObject::tr("Presented By Spark developers # HadesStudio"));
-
-    dialog->setDescription(szDefaultDesc);
-    // WebsiteName
-    dialog->setWebsiteName("Spark Project");
-    // WebsiteLink
-    dialog->setWebsiteLink("https://gitee.com/deepin-community-store/");
-    // License
-    dialog->setLicense(translate("DAboutDialog", "%1 is released under %2").arg(productName()).arg(applicationLicense()));
-
-    setAboutDialog(dialog);
-    connect(aboutDialog(), &DAboutDialog::destroyed, this, [=] {
-        setAboutDialog(nullptr);
-    });
-
-    dialog->hide();
 }
 
 void Application::slotMainWindowClose()

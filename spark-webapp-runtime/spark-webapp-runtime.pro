@@ -1,10 +1,17 @@
-QT += core gui webenginewidgets svg concurrent dbus
+QT += core gui webenginewidgets concurrent
 
 greaterThan(QT_MAJOR_VERSION, 5): QT += widgets
 
 TEMPLATE = app
 
 DEFINES += QT_DEPRECATED_WARNINGS
+
+DEFINES += PROJECT_NAME=\\\"'$${TARGET}'\\\"
+
+# Get build version from qmake
+VERSION = $$BUILD_VERSION
+isEmpty(VERSION): VERSION = 1.0
+DEFINES += APP_VERSION=\\\"'$${VERSION}'\\\"
 
 CONFIG += c++11 link_pkgconfig
 PKGCONFIG += dtkcore dtkgui dtkwidget
@@ -31,10 +38,10 @@ SOURCES += \
         webengineurlrequestinterceptor.cpp
 
 RESOURCES += \
-          resources/resources.qrc
+        resources/resources.qrc
 
 TRANSLATIONS += \
-             translations/spark-webapp-runtime_zh_CN.ts
+        translations/$${TARGET}_zh_CN.ts
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

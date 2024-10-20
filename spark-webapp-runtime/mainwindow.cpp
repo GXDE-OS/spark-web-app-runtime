@@ -1,7 +1,5 @@
 #include "mainwindow.h"
 #include "application.h"
-#include "webengineview.h"
-#include "webenginepage.h"
 
 #include <DLog>
 #include <DWidgetUtil>
@@ -50,8 +48,8 @@ MainWindow::MainWindow(QString szTitle,
     , m_clearCache(new QAction(QObject::tr("Clear Cache"), this))
     , t_menu(new QMenu(this))
     , t_show(new QAction(QObject::tr("Show MainWindow"), this))
-    , t_about(new QAction(qApp->translate("TitleBarMenu", "About"), this))
-    , t_exit(new QAction(qApp->translate("TitleBarMenu", "Exit"), this))
+    , t_about(new QAction(qApp->translate("TitleBarMenu", QString("About").toUtf8().data()), this))
+    , t_exit(new QAction(qApp->translate("TitleBarMenu", QString("Exit").toUtf8().data()), this))
     , downloadMessage(new DFloatingMessage(DFloatingMessage::ResidentType, this))
     , downloadProgressWidget(new QWidget(downloadMessage))
     , progressBarLayout(new QHBoxLayout(downloadProgressWidget))
@@ -75,7 +73,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::setIcon(QString szIconPath)
 {
-    if (!QFileInfo(szIconPath).exists()) {
+    if (!QFile::exists(szIconPath)) {
         return;
     }
 
@@ -83,19 +81,13 @@ void MainWindow::setIcon(QString szIconPath)
     setWindowIcon(QIcon(szIconPath));
     m_tray->setIcon(QIcon(szIconPath));
 
-    DAboutDialog *aboutDialog = qobject_cast<Application *>(qApp)->aboutDialog();
-    if (aboutDialog) {
-        aboutDialog->setWindowIcon(QIcon::fromTheme(szIconPath));
-        aboutDialog->setProductIcon(QIcon::fromTheme(szIconPath));
-    }
+    qApp->setWindowIcon(QIcon::fromTheme(szIconPath));
+    qApp->setProductIcon(QIcon::fromTheme(szIconPath));
 }
 
 void MainWindow::setDescription(const QString &desc)
 {
-    DAboutDialog *aboutDialog = qobject_cast<Application *>(qApp)->aboutDialog();
-    if (aboutDialog) {
-        aboutDialog->setDescription(desc);
-    }
+    qApp->setApplicationDescription(desc);
 }
 
 QString MainWindow::title() const
@@ -187,6 +179,7 @@ void MainWindow::initUI()
 
     fixSize();
     fullScreen();
+    hideButtons(); // 修复指定hidebuttons之后没有生效
 }
 
 void MainWindow::initTitleBar()
@@ -223,8 +216,6 @@ void MainWindow::initTitleBar()
 
     if (!m_isHideButton) {
         m_menu->addAction(m_hideButtons);
-    }else{
-        hideButtons(); // 修复指定hidebuttons之后没有生效
     }
 
     if (m_menu->actions().size() > 0) {
@@ -303,7 +294,7 @@ void MainWindow::initConnections()
         fixSize();
     });
     connect(t_about, &QAction::triggered, this, [=]() {
-        qobject_cast<Application *>(qApp)->handleAboutAction();
+        qobject_cast<Application *>(qApp)->triggerAboutAction();
     });
     connect(t_exit, &QAction::triggered, this, [=]() {
         exit(0);
@@ -384,7 +375,7 @@ QString MainWindow::saveAs(QString fileName)
                                                     QStandardPaths::writableLocation(QStandardPaths::DownloadLocation) + "/" + fileName);
     if (!saveFile.isEmpty()) {
         // 判断上层目录是否可写入
-        if (QFileInfo(QFileInfo(saveFile).absolutePath()).isWritable()) {
+        if (QFileInfo(QFileInfo(saveFile).absoluteDir().canonicalPath()).isWritable()) {
             return saveFile;
         } else {
             return saveAs(fileName);
@@ -418,14 +409,13 @@ void MainWindow::on_downloadStart(QWebEngineDownloadItem *item)
 {
     // 尝试加锁互斥量，禁止同时下载多个文件
     if (mutex.tryLock()) {
-        QString fileName = QFileInfo(item->path()).fileName();
+        QString fileName = item->downloadFileName();
         QString filePath = saveAs(fileName);
         if (filePath.isEmpty()) {
             mutex.unlock();
             return;
         }
-        item->setPath(filePath);
-        filePath = QFileInfo(item->path()).absoluteFilePath();
+        item->setDownloadDirectory(QFileInfo(filePath).absoluteDir().canonicalPath());
 
         connect(item, &QWebEngineDownloadItem::downloadProgress, this, &MainWindow::on_downloadProgress);
         connect(item, &QWebEngineDownloadItem::finished, this, [=]() {
