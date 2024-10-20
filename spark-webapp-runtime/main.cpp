@@ -175,10 +175,10 @@ int main(int argc, char *argv[])
                 szUrl = settings.value("SparkWebAppRuntime/URL", DEFAULT_TITLE).toString();
                 width = settings.value("SparkWebAppRuntime/Width", DEFAULT_WIDTH).toInt();
                 height = settings.value("SparkWebAppRuntime/Height", DEFAULT_HEIGHT).toInt();
-                tray = settings.value("SparkWebAppRunTime/Tray", false).toBool();
-                fullScreen = settings.value("SparkWebAppRunTime/FullScreen", false).toBool();
-                fixSize = settings.value("SparkWebAppRunTime/FixSize", false).toBool();
-                hideButtons = settings.value("SparkWebAppRunTime/HideButtons", false).toBool();
+                tray = settings.value("SparkWebAppRuntime/Tray", false).toBool();
+                fullScreen = settings.value("SparkWebAppRuntime/FullScreen", false).toBool();
+                fixSize = settings.value("SparkWebAppRuntime/FixSize", false).toBool();
+                hideButtons = settings.value("SparkWebAppRuntime/HideButtons", false).toBool();
                 szIcon = settings.value("SparkWebAppRuntime/Ico", DEFAULT_ICON).toString();
                 szDesc = QString("%1<br/><br/>%2")
                              .arg(settings.value("SparkWebAppRuntime/Desc", QString()).toString())
