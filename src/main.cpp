@@ -21,12 +21,6 @@ int main(int argc, char *argv[])
     // 龙芯机器配置,使得 DApplication 能正确加载 QTWEBENGINE
     qputenv("DTK_FORCE_RASTER_WIDGETS", "FALSE");
 
-//    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-features=UseModernMediaControls");
-//    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-web-security");
-#if defined __sw_64__ || __loongarch__
-    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--no-sandbox");
-#endif
-
     // 强制使用 DTK 平台插件
     int fakeArgc = argc + 2;
     QVector<char *> fakeArgv(fakeArgc);
@@ -239,11 +233,17 @@ int main(int argc, char *argv[])
     if (parser.isSet(useGPU)) {
         toUseGPU = parser.value(useGPU).toUInt();
     }
-    if (toUseGPU == true) {
-        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode");
-#ifdef __sw_64__
-        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", "--ignore-gpu-blocklist --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-accelerated-video-decode --no-sandbox");
+
+    QStringList chromium_flags = {"--disable-web-security"};
+#if defined __sw_64__ || __loongarch__
+    chromium_flags << "--no-sandbox";
 #endif
+    if (toUseGPU == true) {
+        chromium_flags << "--ignore-gpu-blocklist"
+                       << "--enable-gpu-rasterization"
+                       << "--enable-native-gpu-memory-buffers"
+                       << "--enable-accelerated-video-decode";
+        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", chromium_flags.join(" ").toUtf8());
         qDebug() << "Setting GPU to True.";
     }
     // 初始化 QtWebEngine 深色模式环境变量

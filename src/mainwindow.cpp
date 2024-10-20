@@ -196,6 +196,7 @@ void MainWindow::initUI()
 
     fixSize();
     fullScreen();
+    hideButtons(); // 修复指定hidebuttons之后没有生效
 }
 
 void MainWindow::initTitleBar()
