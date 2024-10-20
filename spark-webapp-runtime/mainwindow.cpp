@@ -223,6 +223,8 @@ void MainWindow::initTitleBar()
 
     if (!m_isHideButton) {
         m_menu->addAction(m_hideButtons);
+    }else{
+        hideButtons(); // 修复指定hidebuttons之后没有生效
     }
 
     if (m_menu->actions().size() > 0) {
