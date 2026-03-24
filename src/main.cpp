@@ -243,9 +243,9 @@ int main(int argc, char *argv[])
                        << "--enable-gpu-rasterization"
                        << "--enable-native-gpu-memory-buffers"
                        << "--enable-accelerated-video-decode";
-        qputenv("QTWEBENGINE_CHROMIUM_FLAGS", chromium_flags.join(" ").toUtf8());
         qDebug() << "Setting GPU to True.";
     }
+    qputenv("QTWEBENGINE_CHROMIUM_FLAGS", chromium_flags.join(" ").toUtf8());
     // 初始化 QtWebEngine 深色模式环境变量
     WebEngineView::handleChromiumFlags();
 
