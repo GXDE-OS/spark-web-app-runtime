@@ -1,0 +1,32 @@
+# Maintainer: CharOfString <root@charofstring.cc>
+pkgname=spark-webapp-runtime-git
+pkgver=1.8.2
+pkgrel=1
+pkgdesc='Runtime for Spark Store web applications'
+arch=('x86_64' 'aarch64')
+url="https://github.com/GXDE-OS/spark-web-app-runtime"
+license=('GPL-3.0-or-later')
+depends=('dtk6core-git' 'dtk6gui-git' 'dtk6widget-git' 'qt6-base' 'qt6-webengine' 'libgcc' 'libstdc++' 'glibc')
+makedepends=('git' 'cmake' 'ninja' 'pkgconf' 'qt6-tools')
+provides=('spark-webapp-runtime')
+conflicts=('spark-webapp-runtime')
+source=()
+sha512sums=()
+
+# 直接使用 PKGBUILD 所在的 git 仓库作为源码 ・ Build from the git checkout this PKGBUILD lives in.
+_srcroot() {
+  git -C "$startdir" rev-parse --show-toplevel
+}
+
+build() {
+  # 与 debian/rules 相同；程序与 Debian 一样装在 /opt/durapps ・ Same as debian/rules; installed under /opt/durapps as on Debian.
+  cmake -B build -S "$(_srcroot)" -GNinja \
+    -DCMAKE_BUILD_TYPE=None \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DVERSION="$pkgver"
+  ninja -C build
+}
+
+package() {
+  DESTDIR="$pkgdir" ninja -C build install
+}
