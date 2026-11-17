@@ -1,15 +1,16 @@
 # Maintainer: CharOfString <root@charofstring.cc>
-pkgname=spark-webapp-runtime-git
+pkgname=spark-webapp-runtime
 pkgver=1.8.2
 pkgrel=1
 pkgdesc='Runtime for Spark Store web applications'
 arch=('x86_64' 'aarch64')
 url="https://github.com/GXDE-OS/spark-web-app-runtime"
 license=('GPL-3.0-or-later')
-depends=('dtk6core-git' 'dtk6gui-git' 'dtk6widget-git' 'qt6-base' 'qt6-webengine' 'libgcc' 'libstdc++' 'glibc')
+depends=('gxde-dtk6core' 'gxde-dtk6gui' 'gxde-dtk6widget' 'qt6-base' 'qt6-webengine' 'libgcc' 'libstdc++' 'glibc')
 makedepends=('git' 'cmake' 'ninja' 'pkgconf' 'qt6-tools')
-provides=('spark-webapp-runtime')
-conflicts=('spark-webapp-runtime')
+provides=("spark-webapp-runtime-git=$pkgver")
+conflicts=('spark-webapp-runtime-git')
+replaces=('spark-webapp-runtime-git')
 source=()
 sha512sums=()
 
